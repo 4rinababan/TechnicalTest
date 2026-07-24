@@ -73,7 +73,7 @@ namespace TechnicalTest.Controllers
 
         // GET: /Supplier/Create
         // Hanya Admin yang boleh membuat supplier baru (asumsi bisnis, lihat README/asumsi)
-        [AuthorizeUser(Roles = "Admin")]
+        [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult Create()
         {
             return View(new SupplierModel { IsActive = true });
@@ -82,7 +82,7 @@ namespace TechnicalTest.Controllers
         // POST: /Supplier/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [AuthorizeUser(Roles = "Admin")]
+        [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult Create(SupplierModel model)
         {
             if (_supplierRepository.IsDuplicateCode(model.SupplierCode, null))
@@ -144,7 +144,7 @@ namespace TechnicalTest.Controllers
 
         // GET: /Supplier/Delete/5
         // Hanya Admin yang boleh menghapus (soft delete)
-        [AuthorizeUser(Roles = "Admin")]
+        [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult Delete(int id)
         {
             var supplier = _supplierRepository.GetById(id, CurrentUser.UserID, CurrentUser.Role);
@@ -158,7 +158,7 @@ namespace TechnicalTest.Controllers
         // POST: /Supplier/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [AuthorizeUser(Roles = "Admin")]
+        [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult DeleteConfirmed(int id)
         {
             _supplierRepository.Delete(id, CurrentUser.UserID, CurrentUser.Role);
