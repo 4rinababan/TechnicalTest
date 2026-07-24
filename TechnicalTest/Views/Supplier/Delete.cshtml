@@ -1,0 +1,31 @@
+@model TechnicalTest.Models.SupplierModel
+@{
+    ViewBag.Title = "Hapus Supplier";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Hapus Supplier</h2>
+
+<div class="alert alert-warning">
+    Apakah kamu yakin ingin menonaktifkan supplier berikut?
+</div>
+
+<dl class="dl-horizontal">
+    <dt>Kode Supplier</dt>
+    <dd>@Model.SupplierCode</dd>
+
+    <dt>Nama Supplier</dt>
+    <dd>@Model.SupplierName</dd>
+
+    <dt>Kota</dt>
+    <dd>@Model.City</dd>
+</dl>
+
+@using (Html.BeginForm("Delete", "Supplier", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.SupplierID)
+
+    <button type="submit" class="btn btn-danger">Ya, Nonaktifkan</button>
+    @Html.ActionLink("Batal", "Details", new { id = Model.SupplierID }, new { @class = "btn btn-default" })
+}

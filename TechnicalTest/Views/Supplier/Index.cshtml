@@ -1,0 +1,135 @@
+@model TechnicalTest.Models.SupplierListViewModel
+@using TechnicalTest.Helpers
+@{
+    ViewBag.Title = "Supplier List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = SessionHelper.GetCurrentUser(Context);
+    var q = Model.Query;
+
+    Func<string, string> sortIcon = (col) =>
+    {
+        if (q.SortColumn != col) return "";
+        return q.SortDirection == "ASC" ? " ▲" : " ▼";
+    };
+
+    Func<string, string> nextDirection = (col) =>
+    {
+        if (q.SortColumn == col && q.SortDirection == "ASC") return "DESC";
+        return "ASC";
+    };
+}
+
+<h2>Supplier List</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@using (Html.BeginForm("Index", "Supplier", FormMethod.Get))
+{
+    <div class="form-inline" style="margin-bottom: 15px;">
+        <input type="text" name="Keyword" value="@q.Keyword" class="form-control" placeholder="Cari kode / nama supplier..." style="width:250px; margin-right:8px;" />
+        <input type="text" name="City" value="@q.City" class="form-control" placeholder="Filter kota..." style="width:150px; margin-right:8px;" />
+        <select name="IsActive" class="form-control" style="margin-right:8px;">
+            <option value="">-- Semua Status --</option>
+            <option value="true" selected="@(q.IsActive == true)">Aktif</option>
+            <option value="false" selected="@(q.IsActive == false)">Tidak Aktif</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Cari</button>
+        @Html.ActionLink("Reset", "Index", "Supplier", null, new { @class = "btn btn-default" })
+
+        @if (currentUser != null && currentUser.Role == "Admin")
+        {
+            <a href="@Url.Action("Create", "Supplier")" class="btn btn-success pull-right">+ Tambah Supplier</a>
+        }
+    </div>
+
+    @* Simpan sort state saat submit form search *@
+    <input type="hidden" name="SortColumn" value="@q.SortColumn" />
+    <input type="hidden" name="SortDirection" value="@q.SortDirection" />
+    <input type="hidden" name="PageSize" value="@q.PageSize" />
+}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "SupplierCode", SortDirection = nextDirection("SupplierCode"), PageSize = q.PageSize })">
+                    Kode@sortIcon("SupplierCode")
+                </a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "SupplierName", SortDirection = nextDirection("SupplierName"), PageSize = q.PageSize })">
+                    Nama Supplier@sortIcon("SupplierName")
+                </a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "City", SortDirection = nextDirection("City"), PageSize = q.PageSize })">
+                    Kota@sortIcon("City")
+                </a>
+            </th>
+            <th>Telepon</th>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "IsActive", SortDirection = nextDirection("IsActive"), PageSize = q.PageSize })">
+                    Status@sortIcon("IsActive")
+                </a>
+            </th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Result.Items.Count == 0)
+        {
+            <tr><td colspan="6" class="text-center">Tidak ada data supplier.</td></tr>
+        }
+        else
+        {
+            foreach (var item in Model.Result.Items)
+            {
+                <tr>
+                    <td>@item.SupplierCode</td>
+                    <td>@item.SupplierName</td>
+                    <td>@item.City</td>
+                    <td>@item.Phone</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="label label-success">Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="label label-default">Tidak Aktif</span>
+                        }
+                    </td>
+                    <td>
+                        @Html.ActionLink("Detail", "Details", new { id = item.SupplierID }, new { @class = "btn btn-xs btn-info" })
+                        @Html.ActionLink("Edit", "Edit", new { id = item.SupplierID }, new { @class = "btn btn-xs btn-warning" })
+                        @if (currentUser != null && currentUser.Role == "Admin")
+                        {
+                            @Html.ActionLink("Hapus", "Delete", new { id = item.SupplierID }, new { @class = "btn btn-xs btn-danger" })
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@{
+    var totalPages = Model.Result.TotalPages;
+    var currentPage = Model.Result.PageNumber;
+}
+@if (totalPages > 1)
+{
+    <ul class="pagination">
+        @for (int p = 1; p <= totalPages; p++)
+        {
+            <li class="@(p == currentPage ? "active" : "")">
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = q.SortColumn, SortDirection = q.SortDirection, PageSize = q.PageSize, PageNumber = p })">@p</a>
+            </li>
+        }
+    </ul>
+}
+
+<p class="text-muted">Total data: @Model.Result.TotalRecords</p>
