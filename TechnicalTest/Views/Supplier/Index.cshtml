@@ -1,0 +1,184 @@
+@model TechnicalTest.Models.SupplierListViewModel
+@using TechnicalTest.Helpers.Account
+
+@{
+    ViewBag.Title = "Supplier List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = SessionHelper.GetCurrentUser(Context);
+    var q = Model.Query;
+
+    // Menggunakan HTML Entities (&#9650; dan &#9660;) untuk mencegah masalah encoding karakter (â–²)
+    string codeIcon = q.SortColumn == "SupplierCode" ? (q.SortDirection == "ASC" ? " &#9650;" : " &#9660;") : "";
+    string codeNextDir = (q.SortColumn == "SupplierCode" && q.SortDirection == "ASC") ? "DESC" : "ASC";
+
+    string nameIcon = q.SortColumn == "SupplierName" ? (q.SortDirection == "ASC" ? " &#9650;" : " &#9660;") : "";
+    string nameNextDir = (q.SortColumn == "SupplierName" && q.SortDirection == "ASC") ? "DESC" : "ASC";
+
+    string cityIcon = q.SortColumn == "City" ? (q.SortDirection == "ASC" ? " &#9650;" : " &#9660;") : "";
+    string cityNextDir = (q.SortColumn == "City" && q.SortDirection == "ASC") ? "DESC" : "ASC";
+
+    string statusIcon = q.SortColumn == "IsActive" ? (q.SortDirection == "ASC" ? " &#9650;" : " &#9660;") : "";
+    string statusNextDir = (q.SortColumn == "IsActive" && q.SortDirection == "ASC") ? "DESC" : "ASC";
+
+    var totalPages = Model.Result.TotalPages;
+    var currentPage = Model.Result.PageNumber;
+
+    int windowSize = 2;
+    int startPage = Math.Max(1, currentPage - windowSize);
+    int endPage = Math.Min(totalPages, currentPage + windowSize);
+}
+
+<h2>Supplier List</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@using (Html.BeginForm("Index", "Supplier", FormMethod.Get))
+{
+    <!-- Menggunakan CSS Flexbox agar semua kontrol pencarian & tombol tambah supplier rapi 1 baris -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 15px;">
+        <input type="text" name="Keyword" value="@q.Keyword" class="form-control" placeholder="Cari kode / nama supplier..." style="width:220px;" />
+        <input type="text" name="City" value="@q.City" class="form-control" placeholder="Filter kota..." style="width:150px;" />
+        <select name="IsActive" class="form-control" style="width:160px;">
+            <option value="">-- Semua Status --</option>
+            <option value="true" selected="@(q.IsActive == true)">Aktif</option>
+            <option value="false" selected="@(q.IsActive == false)">Tidak Aktif</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Cari</button>
+        @Html.ActionLink("Reset", "Index", "Supplier", null, new { @class = "btn btn-danger" })
+
+        @if (currentUser != null && currentUser.Role == RoleConstants.Admin)
+        {
+            <a href="@Url.Action("Create", "Supplier")" class="btn btn-success" style="margin-left: auto;">+ Tambah Supplier</a>
+        }
+    </div>
+
+    @* Simpan sort state saat submit form search *@
+    <input type="hidden" name="SortColumn" value="@q.SortColumn" />
+    <input type="hidden" name="SortDirection" value="@q.SortDirection" />
+    <input type="hidden" name="PageSize" value="@q.PageSize" />
+}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "SupplierCode", SortDirection = codeNextDir, PageSize = q.PageSize })">Kode @Html.Raw(codeIcon)</a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "SupplierName", SortDirection = nameNextDir, PageSize = q.PageSize })">Nama Supplier @Html.Raw(nameIcon)</a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "City", SortDirection = cityNextDir, PageSize = q.PageSize })">Kota @Html.Raw(cityIcon)</a>
+            </th>
+            <th>Telepon</th>
+            <th>
+                <a href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = "IsActive", SortDirection = statusNextDir, PageSize = q.PageSize })">Status @Html.Raw(statusIcon)</a>
+            </th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Result.Items.Count == 0)
+        {
+            <tr><td colspan="6" class="text-center">Tidak ada data supplier.</td></tr>
+        }
+        else
+        {
+            foreach (var item in Model.Result.Items)
+            {
+                <tr>
+                    <td>@item.SupplierCode</td>
+                    <td>@item.SupplierName</td>
+                    <td>@item.City</td>
+                    <td>@item.Phone</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="label label-success">Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="label label-default">Tidak Aktif</span>
+                        }
+                    </td>
+                    <td>
+                        @Html.ActionLink("Detail", "Details", new { id = item.SupplierID }, new { @class = "btn btn-xs btn-info" })
+                        @Html.ActionLink("Edit", "Edit", new { id = item.SupplierID }, new { @class = "btn btn-xs btn-warning" })
+                        @if (currentUser != null && currentUser.Role == RoleConstants.Admin)
+                        {
+                            @Html.ActionLink("Hapus", "Delete", new { id = item.SupplierID }, new { @class = "btn btn-xs btn-danger" })
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@if (totalPages > 1)
+{
+    <nav aria-label="Supplier pagination">
+        <ul class="pagination">
+            @* Prev *@
+            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                @if (currentPage <= 1)
+                {
+                    <span class="page-link">Prev</span>
+                }
+                else
+                {
+                    <a class="page-link" href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = q.SortColumn, SortDirection = q.SortDirection, PageSize = q.PageSize, PageNumber = currentPage - 1 })">Prev</a>
+                }
+            </li>
+
+            @* Halaman pertama + ellipsis *@
+            @if (startPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = q.SortColumn, SortDirection = q.SortDirection, PageSize = q.PageSize, PageNumber = 1 })">1</a>
+                </li>
+                if (startPage > 2)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+            }
+
+            @for (int p = startPage; p <= endPage; p++)
+            {
+                <li class="page-item @(p == currentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = q.SortColumn, SortDirection = q.SortDirection, PageSize = q.PageSize, PageNumber = p })">@p</a>
+                </li>
+            }
+
+            @* Halaman terakhir + ellipsis *@
+            @if (endPage < totalPages)
+            {
+                if (endPage < totalPages - 1)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = q.SortColumn, SortDirection = q.SortDirection, PageSize = q.PageSize, PageNumber = totalPages })">@totalPages</a>
+                </li>
+            }
+
+            @* Next *@
+            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                @if (currentPage >= totalPages)
+                {
+                    <span class="page-link">Next</span>
+                }
+                else
+                {
+                    <a class="page-link" href="@Url.Action("Index", new { Keyword = q.Keyword, City = q.City, IsActive = q.IsActive, SortColumn = q.SortColumn, SortDirection = q.SortDirection, PageSize = q.PageSize, PageNumber = currentPage + 1 })">Next</a>
+                }
+            </li>
+        </ul>
+    </nav>
+}
+
+<p class="text-muted">Total data: @Model.Result.TotalRecords</p>

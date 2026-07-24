@@ -1,13 +1,18 @@
-﻿<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Error</title>
-</head>
-<body>
-    <hgroup>
-        <h1>Error.</h1>
-        <h2>An error occurred while processing your request.</h2>
-    </hgroup>
-</body>
-</html>
+﻿@model TechnicalTest.Models.ErrorViewModel
+@{
+    ViewBag.Title = "Terjadi Kesalahan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Terjadi Kesalahan</h2>
+
+<div class="alert alert-danger">
+    @Model.Message
+</div>
+
+@if (!string.IsNullOrEmpty(Model.RequestId))
+{
+    <p class="text-muted">Kode referensi: <code>@Model.RequestId</code></p>
+}
+
+@Html.ActionLink("Kembali ke Beranda", "Index", "Home", null, new { @class = "btn btn-default" })
