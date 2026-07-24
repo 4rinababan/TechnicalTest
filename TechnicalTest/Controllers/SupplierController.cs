@@ -2,23 +2,25 @@ using System.Net;
 using System.Web.Mvc;
 using TechnicalTest.Filters;
 using TechnicalTest.Helpers;
+using TechnicalTest.Helpers.Account;
 using TechnicalTest.Models;
 using TechnicalTest.Repositories;
+using TechnicalTest.Services;
 
 namespace TechnicalTest.Controllers
 {
-    [AuthorizeUser] // wajib login untuk semua action di controller ini
+    [AuthorizeUser]
     public class SupplierController : Controller
     {
-        private readonly ISupplierRepository _supplierRepository;
+        private readonly Interfaces.ISupplierService _supplierService;
 
-        public SupplierController() : this(new SupplierRepository())
+        public SupplierController() : this(new Services.SupplierService())
         {
         }
 
-        public SupplierController(ISupplierRepository supplierRepository)
+        public SupplierController(Interfaces.ISupplierService supplierService)
         {
-            _supplierRepository = supplierRepository;
+            _supplierService = supplierService;
         }
 
         private UserModel CurrentUser
@@ -27,7 +29,6 @@ namespace TechnicalTest.Controllers
         }
 
         // GET: /Supplier
-        // RBAC: Admin lihat semua, Supplier hanya lihat data miliknya (difilter di dalam SP)
         public ActionResult Index(SupplierQueryModel query)
         {
             if (query == null)
@@ -41,13 +42,13 @@ namespace TechnicalTest.Controllers
 
             if (!string.IsNullOrWhiteSpace(query.Keyword))
             {
-                result = _supplierRepository.Search(
+                result = _supplierService.Search(
                     query.Keyword, query.PageNumber, query.PageSize,
                     CurrentUser.UserID, CurrentUser.Role);
             }
             else
             {
-                result = _supplierRepository.GetList(query, CurrentUser.UserID, CurrentUser.Role);
+                result = _supplierService.GetList(query, CurrentUser.UserID, CurrentUser.Role);
             }
 
             var viewModel = new SupplierListViewModel
@@ -62,17 +63,15 @@ namespace TechnicalTest.Controllers
         // GET: /Supplier/Details/5
         public ActionResult Details(int id)
         {
-            var supplier = _supplierRepository.GetById(id, CurrentUser.UserID, CurrentUser.Role);
+            var supplier = _supplierService.GetById(id, CurrentUser.UserID, CurrentUser.Role);
             if (supplier == null)
             {
-                // null berarti data tidak ada, ATAU ada tapi bukan milik user ini (RBAC di SP)
                 return HttpNotFound();
             }
             return View(supplier);
         }
 
         // GET: /Supplier/Create
-        // Hanya Admin yang boleh membuat supplier baru (asumsi bisnis, lihat README/asumsi)
         [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult Create()
         {
@@ -85,27 +84,32 @@ namespace TechnicalTest.Controllers
         [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult Create(SupplierModel model)
         {
-            if (_supplierRepository.IsDuplicateCode(model.SupplierCode, null))
-            {
-                ModelState.AddModelError("SupplierCode", "Kode supplier sudah digunakan, gunakan kode lain.");
-            }
-
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var newSupplierId = _supplierRepository.Insert(model, CurrentUser.UserID);
+            var result = _supplierService.Create(model, CurrentUser.UserID);
+            if (!result.Success)
+            {
+                if (result.Message == "DuplicateCode")
+                {
+                    ModelState.AddModelError("SupplierCode", "Kode supplier sudah digunakan, gunakan kode lain.");
+                    return View(model);
+                }
+
+                ModelState.AddModelError(string.Empty, "Gagal membuat supplier: " + result.Message);
+                return View(model);
+            }
 
             TempData["SuccessMessage"] = "Supplier berhasil ditambahkan.";
-            return RedirectToAction("Details", new { id = newSupplierId });
+            return RedirectToAction("Details", new { id = result.Data });
         }
 
         // GET: /Supplier/Edit/5
-        // Admin bisa edit semua, Supplier hanya bisa edit miliknya (dicek di SP lewat GetById & Update)
         public ActionResult Edit(int id)
         {
-            var supplier = _supplierRepository.GetById(id, CurrentUser.UserID, CurrentUser.Role);
+            var supplier = _supplierService.GetById(id, CurrentUser.UserID, CurrentUser.Role);
             if (supplier == null)
             {
                 return HttpNotFound();
@@ -118,22 +122,22 @@ namespace TechnicalTest.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(SupplierModel model)
         {
-            if (_supplierRepository.IsDuplicateCode(model.SupplierCode, model.SupplierID))
-            {
-                ModelState.AddModelError("SupplierCode", "Kode supplier sudah digunakan, gunakan kode lain.");
-            }
-
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var success = _supplierRepository.Update(
+            var result = _supplierService.Update(
                 model, CurrentUser.UserID, CurrentUser.UserID, CurrentUser.Role);
 
-            if (!success)
+            if (!result.Success)
             {
-                // Update gagal karena RBAC (bukan Admin & bukan pemilik data) atau ID tidak ditemukan
+                if (result.Message == "DuplicateCode")
+                {
+                    ModelState.AddModelError("SupplierCode", "Kode supplier sudah digunakan, gunakan kode lain.");
+                    return View(model);
+                }
+
                 return new HttpStatusCodeResult(
                     HttpStatusCode.Forbidden, "Anda tidak memiliki akses untuk mengubah data ini.");
             }
@@ -147,7 +151,7 @@ namespace TechnicalTest.Controllers
         [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult Delete(int id)
         {
-            var supplier = _supplierRepository.GetById(id, CurrentUser.UserID, CurrentUser.Role);
+            var supplier = _supplierService.GetById(id, CurrentUser.UserID, CurrentUser.Role);
             if (supplier == null)
             {
                 return HttpNotFound();
@@ -161,7 +165,12 @@ namespace TechnicalTest.Controllers
         [AuthorizeUser(Roles = RoleConstants.Admin)]
         public ActionResult DeleteConfirmed(int id)
         {
-            _supplierRepository.Delete(id, CurrentUser.UserID, CurrentUser.Role);
+            var result = _supplierService.Delete(id, CurrentUser.UserID, CurrentUser.Role);
+            if (!result.Success)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Anda tidak memiliki akses untuk menghapus data ini.");
+            }
+
             TempData["SuccessMessage"] = "Supplier berhasil dinonaktifkan.";
             return RedirectToAction("Index");
         }

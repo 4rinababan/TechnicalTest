@@ -2,7 +2,9 @@ using System;
 using System.Web.Mvc;
 using TechnicalTest.Helpers;
 using TechnicalTest.Models;
+using TechnicalTest.Interfaces;
 using TechnicalTest.Repositories;
+using TechnicalTest.Helpers.Account;
 
 namespace TechnicalTest.Controllers
 {
@@ -83,7 +85,6 @@ namespace TechnicalTest.Controllers
             return RedirectToAction("Login");
         }
 
-        // Ditampilkan saat AuthorizeUserAttribute menolak akses karena Role tidak sesuai
         public ActionResult AccessDenied()
         {
             return View();

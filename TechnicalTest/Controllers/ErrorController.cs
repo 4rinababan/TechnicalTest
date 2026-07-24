@@ -5,8 +5,6 @@ namespace TechnicalTest.Controllers
 {
     public class ErrorController : Controller
     {
-        // Fallback untuk error yang tidak tertangkap MVC exception filter
-        // (mis. error level IIS/routing), dipanggil lewat <customErrors> di Web.config.
         public ActionResult Index()
         {
             var model = new ErrorViewModel

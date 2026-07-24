@@ -1,12 +1,8 @@
 using System.Web;
 using TechnicalTest.Models;
 
-namespace TechnicalTest.Helpers
+namespace TechnicalTest.Helpers.Account
 {
-    /// <summary>
-    /// Wrapper akses Session, supaya key session tidak tersebar
-    /// sebagai magic string di banyak tempat.
-    /// </summary>
     public static class SessionHelper
     {
         private const string CurrentUserKey = "CurrentUser";

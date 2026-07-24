@@ -10,10 +10,6 @@ namespace TechnicalTest.Models
         public string Role { get; set; } // "Admin" atau "Supplier"
     }
 
-    /// <summary>
-    /// Dipakai KHUSUS di dalam proses login untuk verifikasi hash.
-    /// Tidak boleh dipakai/ditampilkan di luar AccountController.
-    /// </summary>
     public class UserCredentialModel : UserModel
     {
         public string PasswordHash { get; set; }

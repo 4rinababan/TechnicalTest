@@ -3,12 +3,8 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace TechnicalTest.Helpers
+namespace TechnicalTest.Helpers.Database
 {
-    /// <summary>
-    /// Generic ADO.NET helper untuk mengeksekusi Stored Procedure.
-    /// Seluruh akses database WAJIB lewat helper ini (tidak ada raw/inline SQL).
-    /// </summary>
     public static class DbHelper
     {
         private static string ConnectionString

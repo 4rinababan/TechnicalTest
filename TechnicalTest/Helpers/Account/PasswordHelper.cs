@@ -2,12 +2,8 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace TechnicalTest.Helpers
+namespace TechnicalTest.Helpers.Account
 {
-    /// <summary>
-    /// Hashing password: SHA256(password + salt), hasil hex UPPERCASE.
-    /// Harus konsisten dengan hash yang dipakai di 05_InsertDummyData.sql.
-    /// </summary>
     public static class PasswordHelper
     {
         public static string ComputeHash(string password, string salt)

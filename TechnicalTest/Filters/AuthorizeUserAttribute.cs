@@ -3,15 +3,10 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using TechnicalTest.Helpers;
+using TechnicalTest.Helpers.Account;
 
 namespace TechnicalTest.Filters
 {
-    /// <summary>
-    /// Menggantikan [Authorize] bawaan karena login kita berbasis Session,
-    /// bukan Forms/Windows Authentication.
-    /// Pakai: [AuthorizeUser] untuk wajib login,
-    ///        [AuthorizeUser(Roles = "Admin")] untuk RBAC per-role.
-    /// </summary>
     public class AuthorizeUserAttribute : FilterAttribute, IAuthorizationFilter
     {
         public string Roles { get; set; }

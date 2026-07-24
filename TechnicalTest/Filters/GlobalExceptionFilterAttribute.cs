@@ -1,15 +1,12 @@
 using System;
 using System.Web.Mvc;
 using TechnicalTest.Helpers;
+using TechnicalTest.Helpers.Account;
+using TechnicalTest.Helpers.Log;
 using TechnicalTest.Models;
 
 namespace TechnicalTest.Filters
 {
-    /// <summary>
-    /// Global exception handler untuk seluruh Controller/Action.
-    /// Didaftarkan sebagai Global Filter di App_Start/FilterConfig.cs
-    /// menggantikan HandleErrorAttribute bawaan.
-    /// </summary>
     public class GlobalExceptionFilterAttribute : FilterAttribute, IExceptionFilter
     {
         public void OnException(ExceptionContext filterContext)

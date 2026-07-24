@@ -2,7 +2,9 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using TechnicalTest.Helpers;
+using TechnicalTest.Interfaces;
 using TechnicalTest.Models;
+using TechnicalTest.Helpers.Database;
 
 namespace TechnicalTest.Repositories
 {
