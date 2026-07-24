@@ -1,0 +1,8 @@
+@{
+    ViewBag.Title = "404 - Halaman Tidak Ditemukan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>404 - Halaman Tidak Ditemukan</h2>
+<p>Halaman yang kamu cari tidak ada atau sudah dipindahkan.</p>
+@Html.ActionLink("Kembali ke Beranda", "Index", "Home", null, new { @class = "btn btn-default" })
