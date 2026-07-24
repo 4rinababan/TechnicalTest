@@ -152,7 +152,12 @@ Beberapa implementasi utama pada project ini:
 6. Jalankan menggunakan IIS Express atau Local IIS.
 
 ---
+# User & Password Default
+username : admin     | password : Admin@123 | role : admin
+username : supplier1 | password : Supplier@123 | role : supplier
+username : supplier2 | password : Supplier@123 | role : supplier
 
+---
 # Peningkatan yang Dilakukan
 
 - Memisahkan Business Logic ke dalam **Service Layer**.
